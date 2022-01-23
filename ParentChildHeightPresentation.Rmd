@@ -3,7 +3,6 @@ title: "Parent Child Height Modeling and Prediction Application Presentation"
 author: "Helena Luk"
 date: "January 22, 2022"
 output: ioslides_presentation
-runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -22,96 +21,41 @@ In the data set, there are 928 observations that contain 205 different parents a
 
 The midparent's height is an average of the father's height and 1.08 times the mother's.
 
-## Modeling 
-#### In this web application, the users could select a sample of data for modeling by dragging a box around the black dots in the following graph.  A linear regression model will then be generated to find the intercept and the slope.
+## Data Sample 
+In this web application, the users could select a sample of data for modeling by dragging a box around the black dots in the following graph.  
 
-```{r modeling}
+```{r dataplot}
 plot(galton$parent, galton$child, xlab = "Parent (in inches)",
       ylab = "Child (in inches)", main = "Galton's Heights Data of Parents & their Children", cex = 1.0, pch = 16, bty = "n")
 ```
 
+## Resulting Model
+
+A linear regression model will then be generated to find the intercept and the slope.  For example, if the whole Galton data set is used, the following r code will generate the model:
+
+```{r model, echo=TRUE}
+  model <- lm(child ~ parent, data = galton)
+  intercept <- model$coefficients[1]
+  slope <- model$coefficients[2]
+```
+
+The resulting intercept will be `r intercept` with slope `r slope`.
+
 ## Prediction
 
-Once the model is generated using the sample of data selected by the user, the user could then slide the bar to select the "midparent's" height.  The resulting prediction of the child's height will then be displayed at the bottom.
+Once the model is generated using the sample of data selected by the user, the user could then slide the bar to select the "midparent's" height.  The resulting prediction of the child's height will then be displayed at the bottom.  
 
-The next slide will display this interactive application and you could follow Step 1 and Step 2 to try out a number of models and predictions.  Have fun!
-
-## Interactive Application
-
-```{r application}
-ui <- fluidPage(
-
-    titlePanel("Modeling and Prediction using Galton's Height Data for Parents and Children"),
-    sidebarLayout(
-        sidebarPanel(
-            h3("Model Results from Step 1:"),
-            h4("Intercept:"),
-            textOutput("intOut"),
-            h4("Slope:"),
-            textOutput("slopeOut"),
-            h2("Step 2: Prediction:"),
-            sliderInput("pheight",
-                        "Slide to pick parents' height (in inches):",
-                        min = 1,
-                        max = 100,
-                        value = 65),
-            h3("Child's height prediction from Step 2:"),
-            textOutput("cheight")        ),
-        mainPanel(
-            h2("Step 1: Drag a box to select data sample for the prediction model:"),
-            plotOutput("plot1", brush = brushOpts(
-                id = "brush1")
-            )
-        )
-    )
-)
-
-# Define server logic required to draw a histogram
-server <- function(input, output) {
-
-        data("galton")
-        model <- reactive({
-        brushed_data <- brushedPoints(galton, input$brush1,
-                                      xvar = "parent", yvar = "child")
-        if(nrow(brushed_data) < 2){
-            return(NULL)
-        }
-        lm(child ~ parent, data = brushed_data)
-    })
-    output$slopeOut <- renderText({
-        if(is.null(model())){
-            "No Model Found"
-        } else {
-            model()[[1]][2]
-        }
-    })
-    output$intOut <- renderText({
-        if(is.null(model())){
-            "No Model Found"
-        } else {
-            model()[[1]][1]
-        }
-    })
-    output$cheight <- renderText({
-        if(is.null(model())){
-            "No Model Found"
-        } else {
-        model()[[1]][1] + model()[[1]][2]*input$pheight
-        }
-    })
-        output$plot1 <- renderPlot({
-        plot(galton$parent, galton$child, xlab = "Parent (in inches)",
-             ylab = "Child (in inches)", main = "Galton's Heights Data of Parents & their Children",
-             cex = 1.0, pch = 16, bty = "n")
-        if(!is.null(model())){
-            abline(model(), col = "blue", lwd = 2)
-        }
-    })
-}
-
-# Run the application 
-shinyApp(ui = ui, server = server)
+```{r prediction, echo=TRUE}
+  childheight <- intercept + slope * 65
 ```
+
+For example, if the whole Galton data set is used for generating the model as in previous slide, we could use the above r code to predict the child's height for midparent's height of 65 inches. The resulting height of the child is `r childheight` inches.
+
+By varying the midparent's height via sliding the bar, it will result in different child's height.  On the other hand, a different model can be selected again with the midparent's height unchanged.  With the model changed, a different child's height will result.
+
+
+
+
 
 
 
