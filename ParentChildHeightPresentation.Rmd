@@ -1,0 +1,118 @@
+---
+title: "Parent Child Height Modeling and Prediction Application Presentation"
+author: "Helena Luk"
+date: "January 22, 2022"
+output: ioslides_presentation
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(UsingR)
+data("galton")
+```
+
+## Background
+
+This application is for modeling and prediction of child's height using Parents' Data.  It is made interactive using Shiny.  The model is created using the tabulated data set that Galton used in 1885 to study the relationship between a parent's height and their children. 
+
+In the data set, there are 928 observations that contain 205 different parents and 928 children with the following 2 variables:  
+- Child:  The child's height  
+- Parent: The "midparent's" height  
+
+The midparent's height is an average of the father's height and 1.08 times the mother's.
+
+## Modeling 
+#### In this web application, the users could select a sample of data for modeling by dragging a box around the black dots in the following graph.  A linear regression model will then be generated to find the intercept and the slope.
+
+```{r modeling}
+plot(galton$parent, galton$child, xlab = "Parent (in inches)",
+      ylab = "Child (in inches)", main = "Galton's Heights Data of Parents & their Children", cex = 1.0, pch = 16, bty = "n")
+```
+
+## Prediction
+
+Once the model is generated using the sample of data selected by the user, the user could then slide the bar to select the "midparent's" height.  The resulting prediction of the child's height will then be displayed at the bottom.
+
+The next slide will display this interactive application and you could follow Step 1 and Step 2 to try out a number of models and predictions.  Have fun!
+
+## Interactive Application
+
+```{r application}
+ui <- fluidPage(
+
+    titlePanel("Modeling and Prediction using Galton's Height Data for Parents and Children"),
+    sidebarLayout(
+        sidebarPanel(
+            h3("Model Results from Step 1:"),
+            h4("Intercept:"),
+            textOutput("intOut"),
+            h4("Slope:"),
+            textOutput("slopeOut"),
+            h2("Step 2: Prediction:"),
+            sliderInput("pheight",
+                        "Slide to pick parents' height (in inches):",
+                        min = 1,
+                        max = 100,
+                        value = 65),
+            h3("Child's height prediction from Step 2:"),
+            textOutput("cheight")        ),
+        mainPanel(
+            h2("Step 1: Drag a box to select data sample for the prediction model:"),
+            plotOutput("plot1", brush = brushOpts(
+                id = "brush1")
+            )
+        )
+    )
+)
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+
+        data("galton")
+        model <- reactive({
+        brushed_data <- brushedPoints(galton, input$brush1,
+                                      xvar = "parent", yvar = "child")
+        if(nrow(brushed_data) < 2){
+            return(NULL)
+        }
+        lm(child ~ parent, data = brushed_data)
+    })
+    output$slopeOut <- renderText({
+        if(is.null(model())){
+            "No Model Found"
+        } else {
+            model()[[1]][2]
+        }
+    })
+    output$intOut <- renderText({
+        if(is.null(model())){
+            "No Model Found"
+        } else {
+            model()[[1]][1]
+        }
+    })
+    output$cheight <- renderText({
+        if(is.null(model())){
+            "No Model Found"
+        } else {
+        model()[[1]][1] + model()[[1]][2]*input$pheight
+        }
+    })
+        output$plot1 <- renderPlot({
+        plot(galton$parent, galton$child, xlab = "Parent (in inches)",
+             ylab = "Child (in inches)", main = "Galton's Heights Data of Parents & their Children",
+             cex = 1.0, pch = 16, bty = "n")
+        if(!is.null(model())){
+            abline(model(), col = "blue", lwd = 2)
+        }
+    })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+
+
+
+
