@@ -1,7 +1,7 @@
 ---
-title: "Parent Child Height Modeling and Prediction Application Presentation"
+title: "Presentation for Parent Child Height Modeling and Prediction Application"
 author: "Helena Luk"
-date: "January 22, 2022"
+date: "April 22, 2022"
 output: ioslides_presentation
 ---
 
@@ -21,17 +21,17 @@ In the data set, there are 928 observations that contain 205 different parents a
 
 The midparent's height is an average of the father's height and 1.08 times the mother's.
 
-## Data Sample 
-In this web application, the users could select a sample of data for modeling by dragging a box around the black dots in the following graph.  
+## Galton Data 
+The following shows the graphical representation of the Galton data:
 
 ```{r dataplot}
 plot(galton$parent, galton$child, xlab = "Parent (in inches)",
       ylab = "Child (in inches)", main = "Galton's Heights Data of Parents & their Children", cex = 1.0, pch = 16, bty = "n")
 ```
 
-## Resulting Model
+## Prediction Model
 
-A linear regression model will then be generated to find the intercept and the slope.  For example, if the whole Galton data set is used, the following r code will generate the model:
+Using the Galton Data, a linear regression model is used to predict child's height using parents' height.  The following r code will generate the model:
 
 ```{r model, echo=TRUE}
   model <- lm(child ~ parent, data = galton)
@@ -39,19 +39,21 @@ A linear regression model will then be generated to find the intercept and the s
   slope <- model$coefficients[2]
 ```
 
-The resulting intercept will be `r intercept` with slope `r slope`.
+The resulting intercept is `r intercept` with slope `r slope`.
 
-## Prediction
+## Predicting Child's Height
 
-Once the model is generated using the sample of data selected by the user, the user could then slide the bar to select the "midparent's" height.  The resulting prediction of the child's height will then be displayed at the bottom.  
+In this web application, the user could slide the bar to select the "midparent's" height. The resulting prediction of the child's height will then be displayed on the main panel.  
+
+For example, if no selection is made, the default midparent's height is 65 inches.  The following r code will predict the child's height:  
 
 ```{r prediction, echo=TRUE}
   childheight <- intercept + slope * 65
 ```
 
-For example, if the whole Galton data set is used for generating the model as in previous slide, we could use the above r code to predict the child's height for midparent's height of 65 inches. The resulting height of the child is `r childheight` inches.
+The resulting height of the child is `r childheight` inches.  By varying the midparent's height via sliding the bar, it will result in different child's height.
 
-By varying the midparent's height via sliding the bar, it will result in different child's height.  On the other hand, a different model can be selected again with the midparent's height unchanged.  With the model changed, a different child's height will result.
+In addition, the users could also click the checkbox on the side panel to display the linear model line on the graph.
 
 
 
